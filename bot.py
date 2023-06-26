@@ -1,5 +1,6 @@
 import streamlit as st
 from ingest import create_vector_db
+from chain import get_conversation_chain
 
 def main():
   st.set_page_config(
@@ -44,6 +45,7 @@ def main():
       with st.spinner("Processing"):
         vector_store = create_vector_db()
 
+        st.session_state.conversation = get_conversation_chain(vector_store)
         st.write("Processing Done")
 
 if __name__ == '__main__':
