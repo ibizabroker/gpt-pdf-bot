@@ -1,10 +1,5 @@
 import streamlit as st
-
-form_remove_border = r'''
-  <style>
-    [data-testid="stForm"] {border: 0px}
-  </style>
-'''
+from ingest import create_vector_db
 
 def main():
   st.set_page_config(
@@ -25,7 +20,6 @@ def main():
 
   messages_container = st.container()
 
-  # with st.form(key='my_form'):
   query = st.text_input(
     label="Query", 
     key="input", 
@@ -34,11 +28,23 @@ def main():
     label_visibility = "hidden"
   )
 
-  # st.markdown(form_remove_border, unsafe_allow_html=True)
   with st.sidebar:
     st.subheader("Your documents")
-    pdfs = st.file_uploader("Upload your PDFs here and click 'Upload to DB'", accept_multiple_files=True)
-    st.button("Upload to DB")
+    pdfs = st.file_uploader(
+      "Upload your PDFs here and click 'Upload to DB'", 
+      type=['pdf'],
+      accept_multiple_files=True
+    )
+    if pdfs is not None:
+      for pdf in pdfs:
+        with open(pdf.name, "wb") as f:
+          f.write(pdf.getbuffer())
+
+    if st.button("Upload to DB"):
+      with st.spinner("Processing"):
+        vector_store = create_vector_db()
+
+        st.write("Processing Done")
 
 if __name__ == '__main__':
   main()
