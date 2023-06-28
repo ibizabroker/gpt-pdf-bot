@@ -1,6 +1,7 @@
 import streamlit as st
 from ingest import create_vector_db
 from chain import get_conversation_chain
+from chat_ui import message_display
 
 def main():
   st.set_page_config(
@@ -21,12 +22,30 @@ def main():
 
   messages_container = st.container()
 
+  if "generated" not in st.session_state:
+    st.session_state["generated"] = ["Hey there, I'm PDF Bot, ready to chat up on any questions you might have regarding the documents you have uploaded."]
+  if "past" not in st.session_state:
+    st.session_state["past"] = ["Hey!"]
+  if "input" not in st.session_state:
+    st.session_state["input"] = ""
+  if "stored_session" not in st.session_state:
+    st.session_state["stored_session"] = []
+
+  if "messages" not in st.session_state:
+    st.session_state["messages"] = [("Hello! I'm a chatbot designed to help you with pdf documents.")]
+
+  with messages_container:
+    if st.session_state["generated"]:
+      for i in range(len(st.session_state["generated"])):
+        message_display(st.session_state["past"][i], is_user=True)
+        message_display(st.session_state["generated"][i])
+
   query = st.text_input(
     label="Query", 
     key="input", 
     value="", 
     placeholder="Ask your question here...",
-    label_visibility = "hidden"
+    label_visibility = "collapsed"
   )
 
   with st.sidebar:
