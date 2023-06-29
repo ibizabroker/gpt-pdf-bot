@@ -5,7 +5,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores.chroma import Chroma
 from ingest import create_vector_db
 from chain import get_conversation_chain
-from chat_ui import message_display
+from chat_ui import message_display, reset_chat_history
 
 def load_chain():
   collection_name = 'pdf_data'
@@ -89,19 +89,22 @@ def main():
   with c3:
     reset_button = st.button("Reset")
 
-  if len(query) > 2 and submit_button:
+  if reset_button:
+    reset_chat_history()
+
+  if len(query) > 1 and submit_button:
     messages = st.session_state['messages']
 
     result = execute_chain(query)
 
     for i, message in enumerate(result['chat_history']):
       if i % 2 == 0:
-        print("user:" + message.content)
         st.session_state.past.append(message.content)
+        # print("user:" + message.content)
       else:
         messages.append((query, message.content))
         st.session_state.generated.append(message.content)
-        print("bot:" + message.content)
+        # print("bot:" + message.content)
 
   with messages_container:
     if st.session_state["generated"]:
@@ -127,6 +130,13 @@ def main():
 
         st.session_state.conversation = get_conversation_chain(vector_store)
         st.write("Processing Done")
+
+  hide_footer = """
+                  <style>
+                    footer {visibility: hidden;}
+                  </style>
+                """
+  st.markdown(hide_footer, unsafe_allow_html=True) 
 
 if __name__ == '__main__':
   main()
