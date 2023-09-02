@@ -1,44 +1,36 @@
 import streamlit as st
 import os
-import chromadb
+import pinecone
+from langchain.vectorstores.pinecone import Pinecone
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores.chroma import Chroma
 from ingest import create_vector_db
 from chain import get_conversation_chain
 from chat_ui import message_display, reset_chat_history
 
 def load_chain():
-  collection_name = 'pdf_data'
-  dir_name = 'db'
-
-  if not os.path.exists(dir_name):
-    raise Exception(f"{dir_name} does not exist, nothing can be queried")
-
-  client_settings = chromadb.config.Settings(
-    chroma_db_impl="duckdb+parquet",
-    persist_directory=dir_name,
-    anonymized_telemetry=False
+  embeddings = OpenAIEmbeddings(
+    openai_api_key=os.getenv("OPENAI_API_KEY")
   )
 
-  embeddings = OpenAIEmbeddings()
+  pinecone_api_key=os.getenv("PINECONE_API_KEY")
+  pinecone_env_key=os.getenv("PINECONE_ENV_KEY")
 
-  db = Chroma(
-    collection_name=collection_name,
-    embedding_function=embeddings,
-    client_settings=client_settings,
-    persist_directory=dir_name,
+  pinecone.init(
+    api_key=pinecone_api_key,
+    environment=pinecone_env_key
   )
+  index_name = "storage"
+
+  db = Pinecone.from_existing_index(index_name, embeddings)
 
   return get_conversation_chain(db)
 
-chain = load_chain()
-
 def execute_chain(query):
+  chain = load_chain()
   chain_result = None
-  try:
-      chain_result = chain(query)
-  except Exception as error:
-      print("error", error)
+  chain_result = chain({
+    "question": query
+  })
 
   return chain_result
 
@@ -50,7 +42,7 @@ def main():
     initial_sidebar_state="auto",
     menu_items={
       'Report a bug': "https://github.com/ibizabroker/gpt-pdf-bot",
-      'About': '''PDF Bot is a chatbot designed to help you answer questions from pdfs. It is built using OpenAI's GPT, chromadb and Streamlit. 
+      'About': '''PDF Bot is a chatbot designed to help you answer questions from pdfs. It is built using OpenAI's GPT, Pinecone and Streamlit. 
                To learn more about the project go to the GitHub repo. https://github.com/ibizabroker/gpt-pdf-bot 
                '''
     }

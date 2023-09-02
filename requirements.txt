@@ -1,7 +1,7 @@
 streamlit
 langchain
 python-dotenv
-chromadb
+pinecone-client
 pypdf
 openai
 tiktoken

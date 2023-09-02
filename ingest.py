@@ -1,6 +1,6 @@
 import os
-import chromadb
-from langchain.vectorstores.chroma import Chroma
+import pinecone
+from langchain.vectorstores.pinecone import Pinecone
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import PyPDFDirectoryLoader
@@ -20,28 +20,19 @@ def create_vector_db():
   texts = text_splitter.split_documents(data)
   # print(texts)
 
-  persist_directory = 'db'
-  if not os.path.exists(persist_directory):
-    os.mkdir(persist_directory)
-
   embeddings = OpenAIEmbeddings(
     openai_api_key=os.getenv('OPENAI_API_KEY')
   )
-  print(embeddings)
 
-  client_settings = chromadb.config.Settings(
-    chroma_db_impl="duckdb+parquet",
-    persist_directory=persist_directory,
-    anonymized_telemetry=False
-  )
+  pinecone_api_key=os.getenv('PINECONE_API_KEY')
+  pinecone_env_key=os.getenv('PINECONE_ENV_KEY')
 
-  vectordb = Chroma.from_documents(
-    documents=texts,
-    embedding=embeddings,
-    collection_name='pdf_data',
-    client_settings=client_settings,
-    persist_directory=persist_directory
+  pinecone.init(
+    api_key=pinecone_api_key, 
+    environment=pinecone_env_key
   )
-  vectordb.persist()
+  index_name = "storage"
+
+  vectordb = Pinecone.from_documents(texts, embeddings, index_name=index_name)
 
   return vectordb
