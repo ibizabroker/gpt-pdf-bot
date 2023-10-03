@@ -47,6 +47,7 @@ def main():
   with st.sidebar:
     openai_api_key = st.text_input(
       label="OpenAI API Key", 
+      type="password",
       key="openai_api_key", 
       value="", 
       placeholder="sk-...",
@@ -54,6 +55,7 @@ def main():
 
     pinecone_api_key = st.text_input(
       label="Pinecone API Key", 
+      type="password",
       key="pinecone_api_key", 
       value="", 
       placeholder="Pinecone api key...",
@@ -61,10 +63,15 @@ def main():
 
     pinecone_env_key = st.text_input(
       label="Pinecone Environment Key", 
+      type="password",
       key="pinecone_env_key", 
       value="", 
       placeholder="Pinecone env key...",
     )
+
+    st.session_state["OPENAI_API_KEY"]=openai_api_key
+    st.session_state["PINECONE_API_KEY"]=pinecone_api_key
+    st.session_state["PINECONE_ENV_KEY"]=pinecone_env_key
 
     st.subheader("Your documents")
     pdfs = st.file_uploader(
@@ -123,7 +130,7 @@ def main():
   if len(query) > 1 and submit_button:
     messages = st.session_state['messages']
 
-    result = execute_chain(query, openai_api_key, pinecone_api_key, pinecone_env_key)
+    result = execute_chain(query, st.session_state["OPENAI_API_KEY"], st.session_state["PINECONE_API_KEY"], st.session_state["PINECONE_ENV_KEY"])
 
     for i, message in enumerate(result['chat_history']):
       if i % 2 == 0:
