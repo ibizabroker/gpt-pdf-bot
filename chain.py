@@ -3,8 +3,9 @@ from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain.prompts.prompt import PromptTemplate
 
-def get_conversation_chain(vector_store):
+def get_conversation_chain(vector_store, openai_api_key):
   llm = ChatOpenAI(
+    openai_api_key=openai_api_key,
     model="gpt-3.5-turbo",
     temperature=0.7
   )

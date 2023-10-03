@@ -19,7 +19,7 @@ def load_chain(openai_api_key, pinecone_api_key, pinecone_env_key):
 
   db = Pinecone.from_existing_index(index_name, embeddings)
 
-  return get_conversation_chain(db)
+  return get_conversation_chain(db, openai_api_key)
 
 def execute_chain(query, openai_api_key, pinecone_api_key, pinecone_env_key):
   chain = load_chain(openai_api_key, pinecone_api_key, pinecone_env_key)
@@ -88,7 +88,7 @@ def main():
       with st.spinner("Processing"):
         vector_store = create_vector_db()
 
-        st.session_state.conversation = get_conversation_chain(vector_store)
+        st.session_state.conversation = get_conversation_chain(vector_store, st.session_state["OPENAI_API_KEY"])
         st.write("Processing Done")
 
   st.title("PDF Bot")
