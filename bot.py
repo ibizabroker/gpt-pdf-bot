@@ -1,5 +1,4 @@
 import streamlit as st
-import os
 import pinecone
 from langchain.vectorstores.pinecone import Pinecone
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -7,13 +6,10 @@ from ingest import create_vector_db
 from chain import get_conversation_chain
 from chat_ui import message_display, reset_chat_history
 
-def load_chain():
+def load_chain(openai_api_key, pinecone_api_key, pinecone_env_key):
   embeddings = OpenAIEmbeddings(
-    openai_api_key=os.getenv("OPENAI_API_KEY")
+    openai_api_key=openai_api_key
   )
-
-  pinecone_api_key=os.getenv("PINECONE_API_KEY")
-  pinecone_env_key=os.getenv("PINECONE_ENV_KEY")
 
   pinecone.init(
     api_key=pinecone_api_key,
@@ -25,8 +21,8 @@ def load_chain():
 
   return get_conversation_chain(db)
 
-def execute_chain(query):
-  chain = load_chain()
+def execute_chain(query, openai_api_key, pinecone_api_key, pinecone_env_key):
+  chain = load_chain(openai_api_key, pinecone_api_key, pinecone_env_key)
   chain_result = None
   chain_result = chain({
     "question": query
@@ -47,6 +43,46 @@ def main():
                '''
     }
   )
+
+  with st.sidebar:
+    openai_api_key = st.text_input(
+      label="OpenAI API Key", 
+      key="openai_api_key", 
+      value="", 
+      placeholder="sk-...",
+    )
+
+    pinecone_api_key = st.text_input(
+      label="Pinecone API Key", 
+      key="pinecone_api_key", 
+      value="", 
+      placeholder="Pinecone api key...",
+    )
+
+    pinecone_env_key = st.text_input(
+      label="Pinecone Environment Key", 
+      key="pinecone_env_key", 
+      value="", 
+      placeholder="Pinecone env key...",
+    )
+
+    st.subheader("Your documents")
+    pdfs = st.file_uploader(
+      "Upload your PDFs here and click 'Upload to DB'", 
+      type=['pdf'],
+      accept_multiple_files=True
+    )
+    if pdfs is not None:
+      for pdf in pdfs:
+        with open(pdf.name, "wb") as f:
+          f.write(pdf.getbuffer())
+
+    if st.button("Upload to DB"):
+      with st.spinner("Processing"):
+        vector_store = create_vector_db()
+
+        st.session_state.conversation = get_conversation_chain(vector_store)
+        st.write("Processing Done")
 
   st.title("PDF Bot")
   st.caption("Easily chat with pdfs.")
@@ -87,7 +123,7 @@ def main():
   if len(query) > 1 and submit_button:
     messages = st.session_state['messages']
 
-    result = execute_chain(query)
+    result = execute_chain(query, openai_api_key, pinecone_api_key, pinecone_env_key)
 
     for i, message in enumerate(result['chat_history']):
       if i % 2 == 0:
@@ -103,25 +139,6 @@ def main():
       for i in range(len(st.session_state["generated"])):
         message_display(st.session_state["past"][i], is_user=True)
         message_display(st.session_state["generated"][i])
-
-  with st.sidebar:
-    st.subheader("Your documents")
-    pdfs = st.file_uploader(
-      "Upload your PDFs here and click 'Upload to DB'", 
-      type=['pdf'],
-      accept_multiple_files=True
-    )
-    if pdfs is not None:
-      for pdf in pdfs:
-        with open(pdf.name, "wb") as f:
-          f.write(pdf.getbuffer())
-
-    if st.button("Upload to DB"):
-      with st.spinner("Processing"):
-        vector_store = create_vector_db()
-
-        st.session_state.conversation = get_conversation_chain(vector_store)
-        st.write("Processing Done")
 
   hide_footer = """
                   <style>
