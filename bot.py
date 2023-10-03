@@ -45,6 +45,22 @@ def main():
   )
 
   with st.sidebar:
+    with st.expander("How to use?"):
+      st.write("""
+        - Enter your openAI api key in the given field.
+        - Create a free pinecone account to enter the api and environment keys.
+
+        **To upload your pdfs in the database:**
+        - Drag n drop your file in the given section or browse and select your files.
+        - Once the files are selected press the button `Upload to DB`.
+
+        **To chat with your document:**
+        - Make sure you have entered your keys and there is data ingested in your pinecone database.
+        - Ask the question and press `Submit` to get the output.
+        - To clear chat history, press the `Reset` button.  
+               
+        Raise an issue in the [repo](https://github.com/ibizabroker/gpt-pdf-bot) if you have any questions.
+      """)
     openai_api_key = st.text_input(
       label="OpenAI API Key", 
       type="password",
