@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def create_vector_db():
+def create_vector_db(openai_api_key, pinecone_api_key, pinecone_env_key):
   pdfs = PyPDFDirectoryLoader('./')
   data = pdfs.load()
 
@@ -21,11 +21,11 @@ def create_vector_db():
   # print(texts)
 
   embeddings = OpenAIEmbeddings(
-    openai_api_key=os.getenv('OPENAI_API_KEY')
+    openai_api_key=openai_api_key
   )
 
-  pinecone_api_key=os.getenv('PINECONE_API_KEY')
-  pinecone_env_key=os.getenv('PINECONE_ENV_KEY')
+  pinecone_api_key=pinecone_api_key
+  pinecone_env_key=pinecone_env_key
 
   pinecone.init(
     api_key=pinecone_api_key, 

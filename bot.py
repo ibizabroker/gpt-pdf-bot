@@ -51,6 +51,7 @@ def main():
         - Create a free pinecone account to enter the api and environment keys.
 
         **To upload your pdfs in the database:**
+        - In your pinecone, create an index named `storage` with metric as `cosine` and dimensions as `1536`.
         - Drag n drop your file in the given section or browse and select your files.
         - Once the files are selected press the button `Upload to DB`.
 
@@ -102,7 +103,7 @@ def main():
 
     if st.button("Upload to DB"):
       with st.spinner("Processing"):
-        vector_store = create_vector_db()
+        vector_store = create_vector_db(st.session_state["OPENAI_API_KEY"], st.session_state["PINECONE_API_KEY"], st.session_state["PINECONE_ENV_KEY"])
 
         st.session_state.conversation = get_conversation_chain(vector_store, st.session_state["OPENAI_API_KEY"])
         st.write("Processing Done")
